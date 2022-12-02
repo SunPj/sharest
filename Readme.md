@@ -107,7 +107,7 @@ It will be doubled if we have 2 tables and can become unmanageable once we have
 ### How to use this library?
 Add to dependencies 
 ```sbt
-libraryDependencies += "com.github.sunpj" %% "sharest" % "0.1"
+libraryDependencies += "com.github.sunpj" %% "sharest" % "0.1.0-SNAPSHOT"
 ```
 
 Add routing mapping to your `routes` file
