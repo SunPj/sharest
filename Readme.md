@@ -1,6 +1,6 @@
 # Shaytan Rest API builder
 
-Create REST API for your source (DB, memory, etc) with a few lines of code and without code
+Create REST API for your source (DB, memory, etc) with a few lines of code and without code duplication
 
 ### Examples
 
