@@ -1,7 +1,7 @@
-package com.github.sunpj.shaytan.controllers
+package com.github.sunpj.sharest.controllers
 
 import cats.implicits.{catsSyntaxEitherId, catsSyntaxOptionId, none, toFunctorOps}
-import com.github.sunpj.shaytan.services.collection.{Asc, Desc, Filter, Paging, Sort}
+import com.github.sunpj.sharest.services.collection.{Asc, Desc, Filter, Paging, Sort}
 import play.api.mvc.QueryStringBindable
 
 object CustomBinders {

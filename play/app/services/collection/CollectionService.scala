@@ -1,7 +1,7 @@
-package com.github.sunpj.shaytan.services.collection
+package com.github.sunpj.sharest.services.collection
 
 import cats.data.EitherT
-import com.github.sunpj.shaytan.services.collection.CollectionService.{Res, UnitRes}
+import com.github.sunpj.sharest.services.collection.CollectionService.{Res, UnitRes}
 import play.api.libs.json.JsValue
 import play.api.mvc.RequestHeader
 

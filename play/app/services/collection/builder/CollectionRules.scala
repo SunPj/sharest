@@ -1,8 +1,8 @@
-package com.github.sunpj.shaytan.services.collection.builder
+package com.github.sunpj.sharest.services.collection.builder
 
 import play.api.mvc.RequestHeader
-import com.github.sunpj.shaytan.services.collection.{Paging, Sort}
-import com.github.sunpj.shaytan.services.collection.builder.source.SourceTypes
+import com.github.sunpj.sharest.services.collection.{Paging, Sort}
+import com.github.sunpj.sharest.services.collection.builder.source.SourceTypes
 
 import scala.concurrent.Future
 

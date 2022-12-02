@@ -1,4 +1,4 @@
-# Shaytan Rest API builder
+# sharest Rest API builder
 
 Create REST API for your source (DB, memory, etc) with a few lines of code and without code duplication
 
@@ -107,7 +107,7 @@ It will be doubled if we have 2 tables and can become unmanageable once we have
 ### How to use this library?
 Add to dependencies 
 ```sbt
-libraryDependencies += "com.github.sunpj" %% "shaytan" % "0.1"
+libraryDependencies += "com.github.sunpj" %% "sharest" % "0.1"
 ```
 
 Add routing mapping to your `routes` file

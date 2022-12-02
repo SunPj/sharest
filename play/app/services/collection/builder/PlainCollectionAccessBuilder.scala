@@ -1,10 +1,10 @@
-package com.github.sunpj.shaytan.services.collection.builder
+package com.github.sunpj.sharest.services.collection.builder
 
 import cats.data.EitherT
 import cats.implicits.catsSyntaxApplicativeId
-import com.github.sunpj.shaytan.services.collection.{Collection, Filter, Paging, RestAPIError, Sort}
-import com.github.sunpj.shaytan.services.collection.CollectionService.{Res, UnitRes}
-import com.github.sunpj.shaytan.services.collection.builder.CollectionActionAccessRules.{ActionAccessRule, disabled, secured}
+import com.github.sunpj.sharest.services.collection.{Collection, Filter, Paging, RestAPIError, Sort}
+import com.github.sunpj.sharest.services.collection.CollectionService.{Res, UnitRes}
+import com.github.sunpj.sharest.services.collection.builder.CollectionActionAccessRules.{ActionAccessRule, disabled, secured}
 import play.api.libs.json.JsValue
 import play.api.mvc.RequestHeader
 

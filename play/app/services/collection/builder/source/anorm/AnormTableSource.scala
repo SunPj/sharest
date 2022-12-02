@@ -1,17 +1,17 @@
-package com.github.sunpj.shaytan.services.collection.builder.source.anorm
+package com.github.sunpj.sharest.services.collection.builder.source.anorm
 
 import anorm._
 import cats.data.{EitherT, OptionT}
 import cats.implicits.{catsSyntaxApplicativeError, catsSyntaxApplicativeId, catsSyntaxEitherId, catsSyntaxOptionId, none, toFunctorOps, toTraverseOps}
-import com.github.sunpj.shaytan.services.collection.RestAPIError
-import com.github.sunpj.shaytan.services.collection.builder.source.SourceTypes
+import com.github.sunpj.sharest.services.collection.RestAPIError
+import com.github.sunpj.sharest.services.collection.builder.source.SourceTypes
 import play.api.db.Database
 import play.api.libs.json.{JsBoolean, JsNumber, JsObject, JsString, JsValue, Json}
 import play.api.mvc.RequestHeader
-import com.github.sunpj.shaytan.services.collection.CollectionService.{Res, UnitRes}
-import com.github.sunpj.shaytan.services.collection.{Collection, Filter, Paging, Sort}
-import com.github.sunpj.shaytan.services.collection.builder.{CollectionRules, CreateRules, DeleteRules, FetchRules, GetRules, UpdateRules}
-import com.github.sunpj.shaytan.services.collection.builder.source.Source
+import com.github.sunpj.sharest.services.collection.CollectionService.{Res, UnitRes}
+import com.github.sunpj.sharest.services.collection.{Collection, Filter, Paging, Sort}
+import com.github.sunpj.sharest.services.collection.builder.{CollectionRules, CreateRules, DeleteRules, FetchRules, GetRules, UpdateRules}
+import com.github.sunpj.sharest.services.collection.builder.source.Source
 
 import java.math.BigInteger
 import java.sql.{Date, Timestamp}

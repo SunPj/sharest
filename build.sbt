@@ -1,7 +1,7 @@
 version := "0.1.0-SNAPSHOT"
 
 scalaVersion := "2.13.6"
-resolvers += "GitHub Package Registry" at "https://maven.pkg.github.com/sunpj/shaytan"
+resolvers += "GitHub Package Registry" at "https://maven.pkg.github.com/sunpj/sharest"
 credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
 
 val CatsVersion = "2.9.0"
@@ -13,9 +13,9 @@ lazy val root = (project in file("."))
 
 lazy val playModule = (project in file("play"))
   .settings(
-    name := "shaytan",
+    name := "sharest",
     scalaVersion := "2.13.6",
-    routesImport += "com.github.sunpj.shaytan.controllers.CustomBinders._",
+    routesImport += "com.github.sunpj.sharest.controllers.CustomBinders._",
     libraryDependencies ++= Seq(
       jdbc,
       "org.typelevel" %% "cats-core" % CatsVersion,
@@ -26,7 +26,7 @@ lazy val playModule = (project in file("play"))
 
 publishTo := {
   if (isSnapshot.value)
-    Some("snapshots" at "https://maven.pkg.github.com/sunpj/shaytan")
+    Some("snapshots" at "https://maven.pkg.github.com/sunpj/sharest")
   else
-    Some("releases" at "https://maven.pkg.github.com/sunpj/shaytan")
+    Some("releases" at "https://maven.pkg.github.com/sunpj/sharest")
 }

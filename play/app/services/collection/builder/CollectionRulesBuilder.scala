@@ -1,8 +1,8 @@
-package com.github.sunpj.shaytan.services.collection.builder
+package com.github.sunpj.sharest.services.collection.builder
 
-import com.github.sunpj.shaytan.services.collection.builder.source.anorm.{AnormTableSource, StringTypes}
-import com.github.sunpj.shaytan.services.collection.{Collection, Paging, Sort}
-import com.github.sunpj.shaytan.services.collection.builder.source.{Source, SourceTypes}
+import com.github.sunpj.sharest.services.collection.builder.source.anorm.{AnormTableSource, StringTypes}
+import com.github.sunpj.sharest.services.collection.{Collection, Paging, Sort}
+import com.github.sunpj.sharest.services.collection.builder.source.{Source, SourceTypes}
 import play.api.db.Database
 import play.api.mvc.RequestHeader
 

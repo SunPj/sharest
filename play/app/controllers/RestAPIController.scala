@@ -1,6 +1,6 @@
-package com.github.sunpj.shaytan.controllers
+package com.github.sunpj.sharest.controllers
 
-import com.github.sunpj.shaytan.services.collection.{Asc, CollectionService, Desc, EitherTAction, FetchResult, Filter, Paging, Sort, SortOrder}
+import com.github.sunpj.sharest.services.collection.{Asc, CollectionService, Desc, EitherTAction, FetchResult, Filter, Paging, Sort, SortOrder}
 import play.api.libs.json.{JsString, JsValue, Json, JsonValidationError, Reads, Writes}
 import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents, Result}
 

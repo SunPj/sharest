@@ -1,4 +1,4 @@
-package com.github.sunpj.shaytan.services.collection
+package com.github.sunpj.sharest.services.collection
 
 import cats.data.EitherT
 import play.api.Logging
