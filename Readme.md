@@ -107,7 +107,9 @@ It will be doubled if we have 2 tables and can become unmanageable once we have
 ### How to use this library?
 Add to dependencies 
 ```sbt
-libraryDependencies += "com.github.sunpj" %% "sharest" % "0.1.0-SNAPSHOT"
+resolvers += "Sharest GitHub Package Registry" at "https://maven.pkg.github.com/sunpj/commons"
+
+libraryDependencies += "com.github.sunpj" %% "sharest" % "0.0.1"
 ```
 
 Add routing mapping to your `routes` file
@@ -119,10 +121,21 @@ Add routing mapping to your `routes` file
 Configure the collections you want to expose
 
 ```scala
+import com.google.inject._
+import net.codingwell.scalaguice.ScalaModule
+import com.github.sunpj.sharest.services.collection.SupportedCollections
+import play.api.db.{Database, NamedDatabase}
+import play.api.mvc.RequestHeader
+import play.api.db.{Database, NamedDatabase}
+import scala.concurrent.{ExecutionContext, Future}
+import com.github.sunpj.sharest.services.collection.builder.source.anorm.StringTypes
+import com.github.sunpj.sharest.services.collection.builder.{FetchRules, GetRules}
+import com.github.sunpj.sharest.services.collection.builder.CollectionRulesBuilder._
+
 import rest.builder.CollectionRulesBuilder._
 
 class RestAPIModule extends AbstractModule with ScalaModule {
-  
+
   @Provides
   def providesSupportedCollections(@NamedDatabase("default") db: Database)(implicit ec: ExecutionContext) = SupportedCollections(
     // exposes GET, FETCH, CREATE, DELETE, UPDATE REST API methods for table
