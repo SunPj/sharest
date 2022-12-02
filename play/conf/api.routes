@@ -1,0 +1,15 @@
+
+# Returns a list of entities
+GET /:collectionName com.github.sunpj.shaytan.controllers.RestAPIController.fetch(collectionName, filter: Option[com.github.sunpj.shaytan.services.collection.Filter], sort: Option[com.github.sunpj.shaytan.services.collection.Sort], page: Option[com.github.sunpj.shaytan.services.collection.Paging], render: Int = 0)
+
+# Returns an entity
+GET /:collectionName/:id com.github.sunpj.shaytan.controllers.RestAPIController.get(collectionName, id)
+
+# Deletes an entity
+DELETE /:collectionName/:id com.github.sunpj.shaytan.controllers.RestAPIController.delete(collectionName, id)
+
+# Updates an entity
+PATCH /:collectionName/:id com.github.sunpj.shaytan.controllers.RestAPIController.update(collectionName, id)
+
+# Creates an entity
+POST /:collectionName com.github.sunpj.shaytan.controllers.RestAPIController.create(collectionName)
