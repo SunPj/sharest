@@ -1,6 +1,6 @@
-# sharest Rest API builder
+# Sharest (SHAring via REST)
 
-Create REST API for your source (DB, memory, etc) with a few lines of code and without code duplication
+Creates REST API for your source (DB, memory, etc) with a few lines of code and without code duplication
 
 ### Examples
 
@@ -27,7 +27,7 @@ The same as example above, but CREATE and DELETE methods are disabled
 
 #### Each of GET, FETCH, CREATE, DELETE and UPDATE methods can be configured
 
-This sample below shows how to configure FETCH method. Using this configuration FETCH API endpoin
+This sample below shows how to configure a FETCH method. Using this configuration FETCH API endpoin
 will only return items with `id` and `name` fields
 ```scala
 SupportedCollections(
