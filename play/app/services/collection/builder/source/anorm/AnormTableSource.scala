@@ -10,7 +10,7 @@ import play.api.libs.json.{JsBoolean, JsNumber, JsObject, JsString, JsValue, Jso
 import play.api.mvc.RequestHeader
 import com.github.sunpj.sharest.services.collection.CollectionService.{Res, UnitRes}
 import com.github.sunpj.sharest.services.collection.{Collection, Filter, Paging, Sort}
-import com.github.sunpj.sharest.services.collection.builder.{CollectionRules, CreateRules, DeleteRules, FetchRules, GetRules, UpdateRules}
+import com.github.sunpj.sharest.services.collection.builder.CollectionRules
 import com.github.sunpj.sharest.services.collection.builder.source.Source
 
 import java.math.BigInteger
@@ -195,18 +195,12 @@ class AnormTableSource(tableName: String, db: Database)(implicit e: ExecutionCon
       )
 
   override def toCollection(rules: CollectionRules[StringTypes.type]): Collection = new Collection {
-    private val allowedFields = rules.get.allowedFields
-    private val getFilter = rules.get.filter
-    private val deleteFilter = rules.delete.filter
-    private val FetchRules(fetchAllowedFields, fetchFilter, sortAllowed, pagingAllowed, filterAllowed) = rules.fetch
-    private val allowedToUpdateFields = rules.update.allowedFields
-    private val CreateRules(allowedToCreateFields) = rules.create
 
     override def get(id: String)(implicit r: RequestHeader): Res[Option[JsValue]] = for {
       primaryKeyColumnName <- EitherT.fromEither[Future](getPrimaryKeyColumnName)
-      fieldsToRetrieve <- assembleAllowedFields(allowedFields, "get")
+      fieldsToRetrieve <- assembleAllowedFields(rules.get.allowedFields, "get")
       selectClause = fieldsToRetrieve.mkString(", ")
-      whereClause <- assembleWhereClause(getFilter, "get")
+      whereClause <- assembleWhereClause(rules.get.filter, "get")
       idParam <- EitherT.fromEither[Future](idParameter(id))
       rawQuery = s"SELECT $selectClause FROM $tableName WHERE $primaryKeyColumnName = {id} $whereClause"
       item <- EitherT.fromEither[Future](
@@ -219,15 +213,15 @@ class AnormTableSource(tableName: String, db: Database)(implicit e: ExecutionCon
     } yield item.headOption
 
     override def fetch(filter: Option[Filter], sort: Option[Sort], paging: Option[Paging])(implicit r: RequestHeader): Res[(Seq[JsValue], Long)] = for {
-      fieldsToRetrieve <- assembleAllowedFields(fetchAllowedFields, "fetch")
+      fieldsToRetrieve <- assembleAllowedFields(rules.fetch.allowedFields, "fetch")
       selectClause = fieldsToRetrieve.mkString(", ")
-      customFilterWhereClause <- assembleWhereClause(fetchFilter, "fetch")
-      filterData <- filter.fold(Seq.empty[(String, NamedParameter)].pure[Res])(prepareFilterParams(filterAllowed, _))
+      customFilterWhereClause <- assembleWhereClause(rules.fetch.filter, "fetch")
+      filterData <- filter.fold(Seq.empty[(String, NamedParameter)].pure[Res])(prepareFilterParams(rules.fetch.filterAllowed, _))
       (filterColumnNames, filterParams) = filterData.unzip
       requestFilterWhereClause = filterColumnNames.map(n => s"$n = {$n}").mkString(" AND ")
-      pagingData <- pagingClause(pagingAllowed, paging)
+      pagingData <- pagingClause(rules.fetch.pagingAllowed, paging)
       (pagingQuery, pagingParams) = pagingData.getOrElse("", Seq.empty)
-      sort <- sortClause(sortAllowed, sort)
+      sort <- sortClause(rules.fetch.sortAllowed, sort)
       whereConditions = Seq(customFilterWhereClause, requestFilterWhereClause).filter(_.nonEmpty).mkString(" AND ")
       whereClause = if (whereConditions.nonEmpty) s" WHERE $whereConditions" else ""
       rawQuery = s"SELECT $selectClause FROM $tableName $whereClause $sort $pagingQuery"
@@ -252,7 +246,7 @@ class AnormTableSource(tableName: String, db: Database)(implicit e: ExecutionCon
     override def delete(id: String)(implicit r: RequestHeader): UnitRes = for {
       primaryKeyColumnName <- EitherT.fromEither[Future](getPrimaryKeyColumnName)
       idParam <- EitherT.fromEither[Future](idParameter(id))
-      whereClause <- assembleWhereClause(deleteFilter, "delete")
+      whereClause <- assembleWhereClause(rules.delete.filter, "delete")
       rawQuery = s"DELETE FROM $tableName WHERE $primaryKeyColumnName = {id} $whereClause"
       _ <- EitherT.fromEither[Future](
         db.withConnection { implicit c =>
@@ -304,7 +298,7 @@ class AnormTableSource(tableName: String, db: Database)(implicit e: ExecutionCon
       primaryKeyColumnName <- EitherT.fromEither[Future](getPrimaryKeyColumnName)
       idParam <- EitherT.fromEither[Future](idParameter(id))
       updateModelFields <- extractFields(updateModel)
-      allowedFieldsWithParams <- extractAllowedFields(updateModelFields, allowedToUpdateFields)
+      allowedFieldsWithParams <- extractAllowedFields(updateModelFields, rules.update.allowedFields)
       (fields, namedParams) = allowedFieldsWithParams.unzip
       fieldsSetQuery = fields.map(c => s"$c = {$c}").mkString(", ")
       updateQuery = s"UPDATE $tableName SET $fieldsSetQuery WHERE $primaryKeyColumnName = {id}"
@@ -323,7 +317,7 @@ class AnormTableSource(tableName: String, db: Database)(implicit e: ExecutionCon
     // rabco
     override def create(model: JsValue)(implicit r: RequestHeader): UnitRes = for {
       createModelFields <- extractFields(model)
-      allowedFieldsWithParams <- extractAllowedFields(createModelFields, allowedToCreateFields)
+      allowedFieldsWithParams <- extractAllowedFields(createModelFields, rules.create.allowedFields)
       (fields, namedParams) = allowedFieldsWithParams.unzip
       fieldsListQuery = fields.mkString(", ")
       fieldsValuesQuery = fields.map(c => s"{$c}").mkString(", ")

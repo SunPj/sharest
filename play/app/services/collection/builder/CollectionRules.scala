@@ -21,21 +21,21 @@ case class PlainCollectionRules[S <: SourceTypes](
 
 object PlainCollectionRules {
   def empty[S <: SourceTypes](): PlainCollectionRules[S] = PlainCollectionRules(
-    PlainGetRules[S](), FetchRules[S](), PlainUpdateRules[S](), PlainDeleteRules[S](), CreateRules[S]()
+    PlainGetRules[S](), PlainFetchRules[S](), PlainUpdateRules[S](), PlainDeleteRules[S](), PlainCreateRules[S]()
   )
 }
 
 case class SecuredCollectionRules[S <: SourceTypes, I](
-  get: SecuredGetRules[S, I], fetch: FetchRules[S], update: UpdateRules[S], delete: SecuredDeleteRules[S, I], create: CreateRules[S]
+  get: SecuredGetRules[S, I], fetch: SecuredFetchRules[S, I], update: SecuredUpdateRules[S, I], delete: SecuredDeleteRules[S, I], create: SecuredCreateRules[S, I]
 ) extends CollectionRules[S]
 
 object SecuredCollectionRules {
   def empty[S <: SourceTypes, I](identityExtractor: IdentityExtractor[I]): SecuredCollectionRules[S, I] = SecuredCollectionRules(
     SecuredGetRules[S, I](None, None, identityExtractor),
-    FetchRules[S](),
+    SecuredFetchRules[S, I](identityExtractor),
     SecuredUpdateRules[S, I](None, identityExtractor),
     SecuredDeleteRules[S, I](identityExtractor, None),
-    CreateRules[S]()
+    SecuredCreateRules[S, I](None, identityExtractor)
   )
 }
 
@@ -68,13 +68,122 @@ case class SecuredGetRules[S <: SourceTypes, I](
   override protected def updateFilter(f: Option[RequestHeader => Future[S#Filter]]): SecuredGetRules[S, I] = copy(customFilter = f)
 }
 
-case class FetchRules[S <: SourceTypes](
-  fieldAllowed: Option[RequestHeader => Future[S#Fields]] = None,
-  customFilter: Option[RequestHeader => Future[S#Filter]] = None,
-  sortAllowed: Option[RequestHeader => Sort => Future[Boolean]] = None,
-  pagingAllowed: Option[RequestHeader => Paging => Future[Boolean]] = None,
-  filterAllowed: Option[RequestHeader => (String, String) => Future[Boolean]] = None
-)
+trait FetchRules[S <: SourceTypes] extends AllowedFields[S] with FilterField[S] {
+  override type T <: FetchRules[S]
+
+  private[builder] val sortAllowed: Option[RequestHeader => Sort => Future[Boolean]]
+
+  private[builder] val pagingAllowed: Option[RequestHeader => Paging => Future[Boolean]]
+
+  private[builder] val filterAllowed: Option[RequestHeader => (String, String) => Future[Boolean]]
+
+  protected def updateSortAllowed(
+    sortAllowed: Option[RequestHeader => Sort => Future[Boolean]]
+  ): T
+
+  protected def updatePagingAllowed(
+    pagingAllowed: Option[RequestHeader => Paging => Future[Boolean]]
+  ): T
+
+  protected def updateFilterAllowed(
+    filterAllowed: Option[RequestHeader => (String, String) => Future[Boolean]]
+  ): T
+
+  def withAllowedSortF(f: RequestHeader => Sort => Future[Boolean]): T =
+    updateSortAllowed(f.some)
+
+  def withAllowedSortR(f: RequestHeader => Sort => Boolean)(implicit ec: ExecutionContext): T =
+    withAllowedSortF(f.map(_.map(_.pure[Future])))
+
+  def withAllowedSort(f: Sort => Boolean)(implicit ec: ExecutionContext): T = withAllowedSortR(_ => f)
+
+  def withAllowedPagingF(f: RequestHeader => Paging => Future[Boolean]): T =
+    updatePagingAllowed(f.some)
+
+  def withAllowedPagingR(f: RequestHeader => Paging => Boolean)(implicit ec: ExecutionContext): T =
+    withAllowedPagingF(f.map(_.map(_.pure[Future])))
+
+  def withAllowedPaging(f: Paging => Boolean)(implicit ec: ExecutionContext): T = withAllowedPagingR(_ => f)
+
+  def withAllowedFilterF(f: RequestHeader => (String, String) => Future[Boolean]): T =
+    updateFilterAllowed(f.some)
+
+  def withAllowedFilterR(f: RequestHeader => (String, String) => Boolean)(implicit ec: ExecutionContext): T =
+    withAllowedFilterF(r => (k, v) => f(r)(k, v).pure[Future])
+
+  def withAllowedFilter(f: (String, String) => Boolean)(implicit ec: ExecutionContext): T = withAllowedFilterR(_ => f)
+
+}
+
+case class PlainFetchRules[S <: SourceTypes](
+  override val filter: Option[RequestHeader => Future[S#Filter]] = None,
+  override val allowedFields: Option[RequestHeader => Future[S#Fields]] = None,
+  override val sortAllowed: Option[RequestHeader => Sort => Future[Boolean]] = None,
+  override val pagingAllowed: Option[RequestHeader => Paging => Future[Boolean]] = None,
+  override val filterAllowed: Option[RequestHeader => (String, String) => Future[Boolean]] = None,
+) extends FetchRules[S] {
+  override type T = PlainFetchRules[S]
+
+  override protected def updateSortAllowed(sortAllowed: Option[RequestHeader => Sort => Future[Boolean]]): PlainFetchRules[S] =
+    copy(sortAllowed = sortAllowed)
+
+  override protected def updatePagingAllowed(pagingAllowed: Option[RequestHeader => Paging => Future[Boolean]]): PlainFetchRules[S] =
+    copy(pagingAllowed = pagingAllowed)
+
+  override protected def updateFilterAllowed(filterAllowed: Option[RequestHeader => (String, String) => Future[Boolean]]): PlainFetchRules[S] =
+    copy(filterAllowed = filterAllowed)
+
+  override protected def updateAllowedFields(f: Option[RequestHeader => Future[S#Fields]]): PlainFetchRules[S] =
+    copy(allowedFields = f)
+
+  override protected def updateFilter(f: Option[RequestHeader => Future[S#Filter]]): PlainFetchRules[S] =
+    copy(filter = f)
+}
+
+case class SecuredFetchRules[S <: SourceTypes, I](
+  override val ie: IdentityExtractor[I],
+  override val filter: Option[RequestHeader => Future[S#Filter]] = None,
+  override val allowedFields: Option[RequestHeader => Future[S#Fields]] = None,
+  override val sortAllowed: Option[RequestHeader => Sort => Future[Boolean]] = None,
+  override val pagingAllowed: Option[RequestHeader => Paging => Future[Boolean]] = None,
+  override val filterAllowed: Option[RequestHeader => (String, String) => Future[Boolean]] = None,
+) extends FetchRules[S] with SecuredAllowedFields[S, I] with SecuredFilterField[S, I] {
+  override type T = SecuredFetchRules[S, I]
+
+  override protected def updateSortAllowed(sortAllowed: Option[RequestHeader => Sort => Future[Boolean]]): SecuredFetchRules[S, I] =
+    copy(sortAllowed = sortAllowed)
+
+  override protected def updatePagingAllowed(pagingAllowed: Option[RequestHeader => Paging => Future[Boolean]]): SecuredFetchRules[S, I] =
+    copy(pagingAllowed = pagingAllowed)
+
+  override protected def updateFilterAllowed(filterAllowed: Option[RequestHeader => (String, String) => Future[Boolean]]): SecuredFetchRules[S, I] =
+    copy(filterAllowed = filterAllowed)
+
+  override protected def updateAllowedFields(f: Option[RequestHeader => Future[S#Fields]]): SecuredFetchRules[S, I] =
+    copy(allowedFields = f)
+
+  override protected def updateFilter(f: Option[RequestHeader => Future[S#Filter]]): SecuredFetchRules[S, I] =
+    copy(filter = f)
+
+  def withAllowedFilterSecuredF(f: Option[I] => RequestHeader => (String, String) => Future[Boolean])(implicit ec: ExecutionContext): T =
+    withAllowedFilterF(r => (k, v) => ie(r).flatMap(i => f(i)(r)(k, v)))
+
+  def withAllowedFilterSecured(f: Option[I] => RequestHeader => (String, String) => Boolean)(implicit ec: ExecutionContext): T =
+    withAllowedFilterSecuredF(i => r => (k, v) => f(i)(r)(k, v).pure[Future])
+
+  def withAllowedPagingSecuredF(f: Option[I] => RequestHeader => Paging => Future[Boolean])(implicit ec: ExecutionContext): T =
+    withAllowedPagingF(r => p => ie(r).flatMap(i => f(i)(r)(p)))
+
+  def withAllowedPagingSecured(f: Option[I] => RequestHeader => Paging => Boolean)(implicit ec: ExecutionContext): T =
+    withAllowedPagingSecuredF(i => r => p => f(i)(r)(p).pure[Future])
+
+  def withAllowedSortSecuredF(f: Option[I] => RequestHeader => Sort => Future[Boolean])(implicit ec: ExecutionContext): T =
+    withAllowedSortF(r => p => ie(r).flatMap(i => f(i)(r)(p)))
+
+  def withAllowedSortSecured(f: Option[I] => RequestHeader => Sort => Boolean)(implicit ec: ExecutionContext): T =
+    withAllowedSortSecuredF(i => r => p => f(i)(r)(p).pure[Future])
+
+}
 
 trait AllowedFields[S <: SourceTypes]{
   type T <: AllowedFields[S]
@@ -103,9 +212,6 @@ trait SecuredAllowedFields[S <: SourceTypes, I] extends AllowedFields[S] {
   def withAllowedFieldsSecured(f: Option[I] => RequestHeader => S#Fields)(implicit ec: ExecutionContext): T =
     withAllowedFieldsSecuredF(f(_).map(_.pure[Future]))
 
-  def withAllowedFieldsSecured(fields: Future[S#Fields])(implicit ec: ExecutionContext): T = withAllowedFieldsSecuredF(_ => _ => fields)
-
-  def withAllowedFieldsSecured(fields: S#Fields)(implicit ec: ExecutionContext): T = withAllowedFieldsSecured(fields.pure[Future])
 }
 
 trait FilterField[S <: SourceTypes]{
@@ -135,9 +241,6 @@ trait SecuredFilterField[S <: SourceTypes, I] extends FilterField[S] {
   def withFilterSecured(f: Option[I] => RequestHeader => S#Filter)(implicit ec: ExecutionContext): T =
     withFilterSecuredF(f(_).map(_.pure[Future]))
 
-  def withFilterSecured(fields: Future[S#Filter])(implicit ec: ExecutionContext): T = withFilterSecuredF(_ => _ => fields)
-
-  def withFilterSecured(fields: S#Filter)(implicit ec: ExecutionContext): T = withFilterSecured(fields.pure[Future])
 }
 
 trait UpdateRules[S <: SourceTypes] extends AllowedFields[S] {
@@ -183,6 +286,23 @@ case class SecuredDeleteRules[S <: SourceTypes, I](
 }
 
 
-case class CreateRules[S <: SourceTypes](
-  fieldAllowed: Option[RequestHeader => Future[S#Fields]] = None
-)
+trait CreateRules[S <: SourceTypes] extends AllowedFields[S] {
+  override type T <: CreateRules[S]
+}
+
+case class PlainCreateRules[S <: SourceTypes](
+  override val allowedFields: Option[RequestHeader => Future[S#Fields]] = None
+) extends CreateRules[S] {
+  override type T = PlainCreateRules[S]
+
+  override protected def updateAllowedFields(f: Option[RequestHeader => Future[S#Fields]]): T = copy(f)
+}
+
+case class SecuredCreateRules[S <: SourceTypes, I](
+  override val allowedFields: Option[RequestHeader => Future[S#Fields]] = None,
+  override val ie: IdentityExtractor[I],
+) extends CreateRules[S] with SecuredAllowedFields[S, I] {
+  override type T = SecuredCreateRules[S, I]
+
+  override protected def updateAllowedFields(f: Option[RequestHeader => Future[S#Fields]]): T = copy(allowedFields = f)
+}

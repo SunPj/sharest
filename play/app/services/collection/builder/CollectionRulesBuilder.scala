@@ -61,16 +61,16 @@ case class SecuredCollectionRulesBuilder[S <: SourceTypes, I] private[builder](
   def withGetRules(f: SecuredGetRules[S, I] => SecuredGetRules[S, I]): SecuredCollectionRulesBuilder[S, I] =
     withUpdatedRules(rules.copy(get = f(rules.get)))
 
-  def withCreateRules(f: CreateRules[S] => CreateRules[S]): SecuredCollectionRulesBuilder[S, I] =
+  def withCreateRules(f: SecuredCreateRules[S, I] => SecuredCreateRules[S, I]): SecuredCollectionRulesBuilder[S, I] =
     withUpdatedRules(rules.copy(create = f(rules.create)))
 
-  def withUpdateRules(f: UpdateRules[S] => UpdateRules[S]): SecuredCollectionRulesBuilder[S, I] =
+  def withUpdateRules(f: SecuredUpdateRules[S, I] => SecuredUpdateRules[S, I]): SecuredCollectionRulesBuilder[S, I] =
     withUpdatedRules(rules.copy(update = f(rules.update)))
 
   def withDeleteRules(f: SecuredDeleteRules[S, I] => SecuredDeleteRules[S, I]): SecuredCollectionRulesBuilder[S, I] =
     withUpdatedRules(rules.copy(delete = f(rules.delete)))
 
-  def withFetchRules(f: FetchRules[S] => FetchRules[S]): SecuredCollectionRulesBuilder[S, I] =
+  def withFetchRules(f: SecuredFetchRules[S, I] => SecuredFetchRules[S, I]): SecuredCollectionRulesBuilder[S, I] =
     withUpdatedRules(rules.copy(fetch = f(rules.fetch)))
 
   def toCollection: Collection = source.toCollection(rules)
@@ -80,12 +80,8 @@ case class SecuredCollectionRulesBuilder[S <: SourceTypes, I] private[builder](
 
 }
 
-case class SecuredCreateRules[S <: SourceTypes, I](
-  fieldAllowed: Option[(RequestHeader, Option[I]) => Future[S#Fields]] = None
-)
-
 object CollectionRulesBuilder {
-  def fromSource[S <: SourceTypes](source: Source[S]) = new SimpleCollectionRulesBuilder(source, PlainCollectionRules.empty[S]())
+  def fromSource[S <: SourceTypes](source: Source[S]): SimpleCollectionRulesBuilder[S] = SimpleCollectionRulesBuilder(source, PlainCollectionRules.empty[S]())
 
   def fromAnormTable(tableName: String, db: Database)(implicit ec: ExecutionContext): SimpleCollectionRulesBuilder[StringTypes.type] =
     fromSource(new AnormTableSource(tableName, db))
