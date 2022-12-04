@@ -95,7 +95,7 @@ case class PlainCollectionAccessBuilder(private val collection: Collection, prot
 
 
 case class SecuredCollectionAccessBuilder[I](
-  private val identityExtractor: RequestHeader => Future[Option[I]],
+  private val identityExtractor: IdentityExtractor[I],
   private val collection: Collection,
   protected override val rules: CollectionActionAccessRules
 )(implicit ec: ExecutionContext) extends CollectionAccessBuilder[SecuredCollectionAccessBuilder[I]] {

@@ -195,10 +195,11 @@ class AnormTableSource(tableName: String, db: Database)(implicit e: ExecutionCon
       )
 
   override def toCollection(rules: CollectionRules[StringTypes.type]): Collection = new Collection {
-    private val GetRules(allowedFields, getFilter) = rules.get
-    private val DeleteRules(deleteFilter) = rules.delete
+    private val allowedFields = rules.get.allowedFields
+    private val getFilter = rules.get.filter
+    private val deleteFilter = rules.delete.filter
     private val FetchRules(fetchAllowedFields, fetchFilter, sortAllowed, pagingAllowed, filterAllowed) = rules.fetch
-    private val UpdateRules(allowedToUpdateFields) = rules.update
+    private val allowedToUpdateFields = rules.update.allowedFields
     private val CreateRules(allowedToCreateFields) = rules.create
 
     override def get(id: String)(implicit r: RequestHeader): Res[Option[JsValue]] = for {

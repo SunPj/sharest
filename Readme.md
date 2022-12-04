@@ -30,12 +30,12 @@ The same as example above, but CREATE and DELETE methods are disabled
 This sample below shows how to configure a FETCH method. Using this configuration FETCH API endpoin
 will only return items with `id` and `name` fields
 ```scala
+import com.github.sunpj.sharest.services.collection.SupportedCollections
+
 SupportedCollections(
     "posts" -> fromAnormTable("posts", db)
-      .withFetchRules(
-        FetchRules[StringTypes.type](
-          fieldAllowed = ((_: RequestHeader) => Future.successful(Set("id", "name"))).some
-        )
+      .withGetRules(
+        _.withAllowedFields(Set("id", "title", "created_at"))
       )
       .toCollection
 )
@@ -132,7 +132,7 @@ import com.github.sunpj.sharest.services.collection.builder.source.anorm.StringT
 import com.github.sunpj.sharest.services.collection.builder.{FetchRules, GetRules}
 import com.github.sunpj.sharest.services.collection.builder.CollectionRulesBuilder._
 
-import rest.builder.CollectionRulesBuilder._
+import com.github.sunpj.sharest.services.collection.builder.CollectionRulesBuilder._
 
 class RestAPIModule extends AbstractModule with ScalaModule {
 
