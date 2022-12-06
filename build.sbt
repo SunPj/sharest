@@ -12,7 +12,7 @@ lazy val playModule = (project in file("play"))
   .settings(
     name := "sharest",
     organization := "com.github.sunpj",
-    version := "0.0.1",
+    version := "0.0.2",
     scalaVersion := "2.13.6",
     routesImport += "com.github.sunpj.sharest.controllers.CustomBinders._",
     libraryDependencies ++= Seq(

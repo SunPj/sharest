@@ -143,9 +143,10 @@ class RestAPIModule extends AbstractModule with ScalaModule {
     // exposes GET, FETCH, CREATE, UPDATE REST API methods for table (DELETE method is disabled)
     "stats" -> fromAnormTable("stats", db).withAccessSettings.disableCreate().disableDelete().toCollection,
     // exposes GET, FETCH, CREATE, UPDATE, DELETE REST API methods for table, while GET method will expose only id and title fields
-    "news" -> fromAnormTable("news", db).withGetRules(GetRules[StringTypes.type](
-      ((_: RequestHeader) => Future.successful(Set("id", "title"))).some,
-    )).toCollection
+    "news" -> fromAnormTable("news", db)
+      .withGetRules(
+        _.withAllowedFields(Set("id", "title", "created_at"))
+      ).toCollection
   )
 
 }
